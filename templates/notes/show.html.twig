@@ -57,6 +57,7 @@
                 <hr>
 
                 <div class="note-content">
+                    {# Content is sanitized server-side by HtmlSanitizer before storage — safe to render as raw HTML #}
                     {{ note.content|raw }}
                 </div>
             </div>

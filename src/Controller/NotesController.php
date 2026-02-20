@@ -10,11 +10,14 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
+use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 class NotesController extends AbstractController
 {
     public function __construct(
-        private HtmlSanitizerInterface $noteSanitizer
+        private HtmlSanitizerInterface $noteSanitizer,
+        private CsrfTokenManagerInterface $csrfTokenManager
     ) {}
 
     public function index(Request $request, NoteRepository $noteRepository): Response
@@ -105,13 +108,17 @@ class NotesController extends AbstractController
         ]);
     }
 
-    public function archive(int $id, NoteRepository $noteRepository, EntityManagerInterface $em): Response
+    public function archive(int $id, Request $request, NoteRepository $noteRepository, EntityManagerInterface $em): Response
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
 
         $note = $noteRepository->findOneBy(['id' => $id, 'isDeleted' => false]);
         if (!$note || $note->getUser() !== $this->getUser()) {
             throw $this->createNotFoundException('Note not found.');
+        }
+
+        if (!$this->csrfTokenManager->isTokenValid(new CsrfToken('archive' . $id, $request->request->get('_token')))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
         }
 
         $note->setIsArchived(!$note->isArchived());
@@ -121,13 +128,17 @@ class NotesController extends AbstractController
         return $this->redirectToRoute('app_notes_index');
     }
 
-    public function delete(int $id, NoteRepository $noteRepository, EntityManagerInterface $em): Response
+    public function delete(int $id, Request $request, NoteRepository $noteRepository, EntityManagerInterface $em): Response
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
 
         $note = $noteRepository->findOneBy(['id' => $id, 'isDeleted' => false]);
         if (!$note || $note->getUser() !== $this->getUser()) {
             throw $this->createNotFoundException('Note not found.');
+        }
+
+        if (!$this->csrfTokenManager->isTokenValid(new CsrfToken('delete' . $id, $request->request->get('_token')))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
         }
 
         $note->setIsDeleted(true);
