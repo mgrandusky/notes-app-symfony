@@ -1,0 +1,109 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Notes{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>My Notes</h1>
+    <a href="{{ path('app_notes_new') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> New Note
+    </a>
+</div>
+
+<form method="get" class="card card-body mb-4">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label">Search</label>
+            <input type="text" name="search" value="{{ filters.search }}" class="form-control" placeholder="Search notes...">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Tag</label>
+            <input type="text" name="tag" value="{{ filters.tag }}" class="form-control" placeholder="Filter by tag">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Sort by</label>
+            <select name="sort" class="form-select">
+                <option value="updatedAt" {{ filters.sort == 'updatedAt' ? 'selected' : '' }}>Last Updated</option>
+                <option value="createdAt" {{ filters.sort == 'createdAt' ? 'selected' : '' }}>Created</option>
+                <option value="title" {{ filters.sort == 'title' ? 'selected' : '' }}>Title</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Order</label>
+            <select name="order" class="form-select">
+                <option value="DESC" {{ filters.order == 'DESC' ? 'selected' : '' }}>Newest first</option>
+                <option value="ASC" {{ filters.order == 'ASC' ? 'selected' : '' }}>Oldest first</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Show</label>
+            <select name="archived" class="form-select">
+                <option value="" {{ filters.archived == '' ? 'selected' : '' }}>All</option>
+                <option value="0" {{ filters.archived == '0' ? 'selected' : '' }}>Active</option>
+                <option value="1" {{ filters.archived == '1' ? 'selected' : '' }}>Archived</option>
+            </select>
+        </div>
+        <div class="col-12">
+            <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+            <a href="{{ path('app_notes_index') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
+        </div>
+    </div>
+</form>
+
+{% if notes is empty %}
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-journal-x fs-1"></i>
+        <p class="mt-2">No notes found. <a href="{{ path('app_notes_new') }}">Create your first note!</a></p>
+    </div>
+{% else %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for note in notes %}
+            <div class="col">
+                <div class="card h-100 {{ note.isArchived ? 'border-secondary' : '' }}">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{{ path('app_notes_show', {id: note.id}) }}" class="text-decoration-none">
+                                {{ note.title }}
+                            </a>
+                            {% if note.isArchived %}
+                                <span class="badge bg-secondary ms-1">Archived</span>
+                            {% endif %}
+                        </h5>
+                        {% if note.tags %}
+                            <div class="mb-2">
+                                {% for tag in note.tags|split(',') %}
+                                    <span class="badge bg-light text-dark border">{{ tag|trim }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if note.content %}
+                            <p class="card-text text-muted small">{{ note.content|striptags|slice(0, 100) }}{% if note.content|striptags|length > 100 %}...{% endif %}</p>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer d-flex justify-content-between align-items-center">
+                        <small class="text-muted">{{ note.updatedAt|date('M d, Y') }}</small>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{{ path('app_notes_edit', {id: note.id}) }}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="post" action="{{ path('app_notes_archive', {id: note.id}) }}" class="d-inline">
+                                <input type="hidden" name="_token" value="{{ csrf_token('archive' ~ note.id) }}">
+                                <button type="submit" class="btn btn-outline-secondary btn-sm" title="{{ note.isArchived ? 'Unarchive' : 'Archive' }}">
+                                    <i class="bi bi-{{ note.isArchived ? 'arrow-counterclockwise' : 'archive' }}"></i>
+                                </button>
+                            </form>
+                            <form method="post" action="{{ path('app_notes_delete', {id: note.id}) }}" class="d-inline"
+                                  onsubmit="return confirm('Delete this note?')">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ note.id) }}">
+                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endblock %}

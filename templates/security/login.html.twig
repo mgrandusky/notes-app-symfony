@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Login - Notes App{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="card-title mb-4 text-center">Login</h2>
+
+                {% if error %}
+                    <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                {% endif %}
+
+                <form method="post">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" id="email" name="email" class="form-control"
+                               value="{{ last_username }}" autocomplete="email" required autofocus>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" id="password" name="password" class="form-control"
+                               autocomplete="current-password" required>
+                    </div>
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-primary">Login</button>
+                    </div>
+                </form>
+
+                <hr>
+                <div class="d-grid gap-2">
+                    <a href="{{ path('connect_google') }}" class="btn btn-outline-danger">
+                        <i class="bi bi-google"></i> Login with Google
+                    </a>
+                    <a href="{{ path('connect_github') }}" class="btn btn-outline-dark">
+                        <i class="bi bi-github"></i> Login with GitHub
+                    </a>
+                </div>
+                <hr>
+                <p class="text-center mb-0">
+                    Don't have an account? <a href="{{ path('app_register') }}">Register</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

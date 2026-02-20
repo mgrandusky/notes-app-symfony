@@ -1,0 +1,63 @@
+app_home:
+    path: /
+    controller: App\Controller\SecurityController::index
+
+app_login:
+    path: /login
+    controller: App\Controller\SecurityController::login
+    methods: [GET, POST]
+
+app_register:
+    path: /register
+    controller: App\Controller\SecurityController::register
+    methods: [GET, POST]
+
+app_logout:
+    path: /logout
+    controller: App\Controller\SecurityController::logout
+    methods: [POST]
+
+connect_google:
+    path: /connect/google
+    controller: App\Controller\OAuthController::connectGoogle
+
+connect_google_check:
+    path: /connect/google/check
+    controller: App\Controller\OAuthController::connectGoogleCheck
+
+connect_github:
+    path: /connect/github
+    controller: App\Controller\OAuthController::connectGithub
+
+connect_github_check:
+    path: /connect/github/check
+    controller: App\Controller\OAuthController::connectGithubCheck
+
+app_notes_index:
+    path: /notes/
+    controller: App\Controller\NotesController::index
+
+app_notes_new:
+    path: /notes/new
+    controller: App\Controller\NotesController::new
+    methods: [GET, POST]
+
+app_notes_show:
+    path: /notes/{id}
+    controller: App\Controller\NotesController::show
+
+app_notes_edit:
+    path: /notes/{id}/edit
+    controller: App\Controller\NotesController::edit
+    methods: [GET, POST]
+
+app_notes_archive:
+    path: /notes/{id}/archive
+    controller: App\Controller\NotesController::archive
+    methods: [POST]
+
+app_notes_delete:
+    path: /notes/{id}/delete
+    controller: App\Controller\NotesController::delete
+    methods: [POST]
+
