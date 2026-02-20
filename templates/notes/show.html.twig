@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ note.title }} - Notes App{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+                <a href="{{ path('app_notes_index') }}" class="text-decoration-none text-muted">
+                    <i class="bi bi-arrow-left"></i> Back to Notes
+                </a>
+            </div>
+            <div class="btn-group">
+                <a href="{{ path('app_notes_edit', {id: note.id}) }}" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-pencil"></i> Edit
+                </a>
+                <form method="post" action="{{ path('app_notes_archive', {id: note.id}) }}" class="d-inline">
+                    <input type="hidden" name="_token" value="{{ csrf_token('archive' ~ note.id) }}">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-{{ note.isArchived ? 'arrow-counterclockwise' : 'archive' }}"></i>
+                        {{ note.isArchived ? 'Unarchive' : 'Archive' }}
+                    </button>
+                </form>
+                <form method="post" action="{{ path('app_notes_delete', {id: note.id}) }}" class="d-inline"
+                      onsubmit="return confirm('Delete this note?')">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ note.id) }}">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="card-title">
+                    {{ note.title }}
+                    {% if note.isArchived %}
+                        <span class="badge bg-secondary ms-2">Archived</span>
+                    {% endif %}
+                </h1>
+
+                {% if note.tags %}
+                    <div class="mb-3">
+                        {% for tag in note.tags|split(',') %}
+                            <span class="badge bg-light text-dark border">{{ tag|trim }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="text-muted small mb-3">
+                    Created: {{ note.createdAt|date('M d, Y H:i') }} &bull;
+                    Updated: {{ note.updatedAt|date('M d, Y H:i') }}
+                </div>
+
+                <hr>
+
+                <div class="note-content">
+                    {{ note.content|raw }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
