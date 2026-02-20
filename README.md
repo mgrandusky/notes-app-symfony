@@ -14,11 +14,88 @@ A server-rendered Notes web application built with Symfony 7.2, reproducing the 
 
 ## Requirements
 
+### Docker (recommended)
+
+- [Docker](https://docs.docker.com/get-docker/) 24+
+- [Docker Compose](https://docs.docker.com/compose/install/) v2 (included with Docker Desktop)
+
+### Without Docker
+
 - PHP 8.2+
 - Composer 2.x
 - SQLite extension (`php-sqlite3`) for local development, or a MySQL/PostgreSQL server
 
-## Local Setup
+---
+
+## Docker Setup (Recommended)
+
+The Docker setup runs three containers: **PHP-FPM**, **Nginx** (port 8080), and **PostgreSQL** (with a named volume for persistence).
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/mgrandusky/notes-app-symfony.git
+cd notes-app-symfony
+```
+
+### 2. Configure OAuth credentials (optional for first run)
+
+Copy the Docker environment template and add your OAuth credentials:
+
+```bash
+cp .env.docker .env.local
+```
+
+Edit `.env.local` and replace `your_google_client_id` / `your_github_client_id` etc. with real values. You can skip this step and add credentials later — the app will start with the placeholder values.
+
+> **OAuth callback URLs** to register with the providers:
+> - Google: `http://localhost:8080/connect/google/check`
+> - GitHub: `http://localhost:8080/connect/github/check`
+
+### 3. First-time setup (one command)
+
+```bash
+make setup
+```
+
+This will:
+1. Build the PHP-FPM Docker image
+2. Start all containers (PHP, Nginx, PostgreSQL)
+3. Install Composer dependencies
+4. Create the database schema and mark existing migrations as applied
+
+Open <http://localhost:8080> in your browser.
+
+### Common tasks
+
+| Command | Description |
+|---|---|
+| `make up` | Start containers |
+| `make down` | Stop containers |
+| `make logs` | Tail container logs |
+| `make shell` | Open a shell inside the PHP container |
+| `make composer-install` | Install/sync Composer dependencies |
+| `make migrate` | Run pending Doctrine migrations |
+| `make cache-clear` | Clear the Symfony cache |
+| `make help` | List all available targets |
+
+### Running migrations
+
+For **first-time** Docker setup, `make setup` (or `make db-init`) creates the schema directly from entity metadata and marks all existing migrations as applied.
+
+For **subsequent** schema changes, generate and run a migration:
+
+```bash
+make shell
+php bin/console doctrine:migrations:diff
+php bin/console doctrine:migrations:migrate
+# or from the host:
+make migrate
+```
+
+---
+
+## Local Setup (Without Docker)
 
 ### 1. Clone and install dependencies
 
@@ -128,6 +205,54 @@ Tests use an in-memory SQLite database (configured in `phpunit.dist.xml`) and co
 - Unauthenticated redirect to `/login`
 - Authenticated note creation
 - Note repository filtering (user isolation, soft-delete, search)
+
+---
+
+## Troubleshooting
+
+### Permission errors on `var/` directory
+
+If you see permission errors for the Symfony `var/` directory:
+
+```bash
+make shell
+chmod -R 775 var/
+```
+
+### Database connection refused
+
+Ensure the PostgreSQL container is healthy before running PHP commands:
+
+```bash
+docker compose ps        # check "database" shows "(healthy)"
+make logs                # inspect container logs
+```
+
+### Cache issues
+
+```bash
+make cache-clear
+```
+
+### Composer errors
+
+```bash
+make composer-install
+```
+
+If the `vendor/` directory is out of sync with the container volume, remove only the vendor volume and reinstall:
+
+```bash
+docker volume rm notes-app-symfony_php_vendor
+make composer-install
+```
+
+To completely reset all data (⚠ **destroys the database**):
+
+```bash
+docker compose down -v   # removes ALL named volumes including database_data
+make setup
+```
 
 ---
 
