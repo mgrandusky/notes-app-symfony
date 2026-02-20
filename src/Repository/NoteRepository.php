@@ -25,13 +25,15 @@ class NoteRepository extends ServiceEntityRepository
             ->setParameter('user', $user);
 
         if (!empty($filters['search'])) {
+            $safe = $this->escapeLike($filters['search']);
             $qb->andWhere('n.title LIKE :search OR n.content LIKE :search OR n.tags LIKE :search')
-               ->setParameter('search', '%' . $filters['search'] . '%');
+               ->setParameter('search', '%' . $safe . '%');
         }
 
         if (!empty($filters['tag'])) {
+            $safe = $this->escapeLike($filters['tag']);
             $qb->andWhere('n.tags LIKE :tag')
-               ->setParameter('tag', '%' . $filters['tag'] . '%');
+               ->setParameter('tag', '%' . $safe . '%');
         }
 
         if (isset($filters['archived']) && $filters['archived'] !== '') {
@@ -55,5 +57,10 @@ class NoteRepository extends ServiceEntityRepository
         $qb->orderBy('n.' . $sortField, $sortOrder);
 
         return $qb->getQuery()->getResult();
+    }
+
+    private function escapeLike(string $value): string
+    {
+        return str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $value);
     }
 }
